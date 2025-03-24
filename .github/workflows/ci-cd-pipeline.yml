@@ -31,16 +31,21 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          # Login to Docker Hub
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin docker.io
+          
+          # Set image names with Docker Hub namespace
+          MAIN_APP_IMAGE="docker.io/$DOCKER_USERNAME/appointment-app:${{ github.sha }}"
+          NOTIFICATION_SERVICE_IMAGE="docker.io/$DOCKER_USERNAME/notification-service:${{ github.sha }}"
           
           # Build and push main application
-          docker build --no-cache -t $DOCKER_USERNAME/appointment-app:${{ github.sha }} .
-          docker push $DOCKER_USERNAME/appointment-app:${{ github.sha }}
+          docker build --no-cache -t "$MAIN_APP_IMAGE" .
+          docker push "$MAIN_APP_IMAGE"
           
           # Build and push notification service
           cd microservice
-          docker build --no-cache -t $DOCKER_USERNAME/notification-service:${{ github.sha }} .
-          docker push $DOCKER_USERNAME/notification-service:${{ github.sha }}
+          docker build --no-cache -t "$NOTIFICATION_SERVICE_IMAGE" .
+          docker push "$NOTIFICATION_SERVICE_IMAGE"
 
       - name: Update deployment files
         run: |
