@@ -31,56 +31,15 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ]; then
-            echo "Error: Docker Hub credentials are not properly configured in repository secrets"
-            exit 1
-          fi
-
-          # Login to Docker Hub with error handling
-          echo "Logging in to Docker Hub..."
-          if ! echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin docker.io; then
-            echo "Error: Failed to authenticate with Docker Hub"
-            exit 1
-          fi
-          echo "Successfully logged in to Docker Hub"
+          Aogin -u "$DOCKER_USERNAME" --password-stdin
           
-          # Set image names with Docker Hub namespace
-          MAIN_APP_IMAGE="$DOCKER_USERNAME/appointment-app:${{ github.sha }}"
-          NOTIFICATION_SERVICE_IMAGE="$DOCKER_USERNAME/notification-service:${{ github.sha }}"
-          
-          # Build and push main application
-          echo "Building main application image..."
-          if ! docker build --no-cache -t "$MAIN_APP_IMAGE" .; then
-            echo "Error: Failed to build main application image"
-            exit 1
-          fi
-          
-          echo "Pushing main application image..."
-          if ! docker push "$MAIN_APP_IMAGE"; then
-            echo "Error: Failed to push main application image"
-            exit 1
-          fi
-          
-          # Build and push notification service
-          cd microservice
-          echo "Building notification service image..."
-          if ! docker build --no-cache -t "$NOTIFICATION_SERVICE_IMAGE" .; then
-            echo "Error: Failed to build notification service image"
-            exit 1
-          fi
-          
-          echo "Pushing notification service image..."
-          if ! docker push "$NOTIFICATION_SERVICE_IMAGE"; then
-            echo "Error: Failed to push notification service image"
-            exit 1
-          fi
-          
-          echo "Successfully built and pushed all Docker images"
-
-      - name: Update deployment files
+          # Build ain application
+          Buildk ndipu-hnma-ncREplicRtionME/appointmeb.sha  bu}ld --n -cache -t 
+          docker push $DOCKER_USERNAME/appointme .t-app:${{ gi       push uild and push notappftnnmeetrapp         cd microsrvice
+          docker build --no-cache:{ h ate deployment files
         run: |
-          # Update docker-compose.yml with new image tags
-          sed -i 's|build:|image: ${{ secrets.DOCKER_USERNAME }}/appointment-app:${{ github.sha }}|' docker-compose.yml
+          # Update docker-compose.yml with nwDi KER
+U   NsMd/notification-service:${{ github.sha }}-i 's|build:|image: ${{ serDtCKERSUERNNaMp/notification-service:${{ github.sha }}intment-app:${{ github.sha }}|' docker-compose.yml
           sed -i 's|build:|image: ${{ secrets.DOCKER_USERNAME }}/notification-service:${{ github.sha }}|' docker-compose.yml
 
       - name: Deploy application
