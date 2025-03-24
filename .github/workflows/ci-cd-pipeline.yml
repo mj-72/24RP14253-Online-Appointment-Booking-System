@@ -31,15 +31,15 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           
           # Build and push main application
-          docker build -t $DOCKER_USERNAME/appointment-app:${{ github.sha }} .
+          docker build --no-cache -t $DOCKER_USERNAME/appointment-app:${{ github.sha }} .
           docker push $DOCKER_USERNAME/appointment-app:${{ github.sha }}
           
           # Build and push notification service
           cd microservice
-          docker build -t $DOCKER_USERNAME/notification-service:${{ github.sha }} .
+          docker build --no-cache -t $DOCKER_USERNAME/notification-service:${{ github.sha }} .
           docker push $DOCKER_USERNAME/notification-service:${{ github.sha }}
 
       - name: Update deployment files

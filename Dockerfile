@@ -1,13 +1,23 @@
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
+# Install dependencies first
 COPY package*.json ./
+RUN npm ci --only=production
 
-RUN npm install
-
+# Copy source
 COPY . .
 
+# Create volume for persistent data
+VOLUME ["/app/data"]
+
+# Expose port
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+# Set NODE_ENV
+ENV NODE_ENV=production
+
+# Start the app
+CMD ["npm", "start"]
