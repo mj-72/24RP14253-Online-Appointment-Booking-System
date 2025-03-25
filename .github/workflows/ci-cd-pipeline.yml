@@ -31,16 +31,21 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          Aogin -u "$DOCKER_USERNAME" --password-stdin
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
           
-          # Build ain application
-          Buildk ndipu-hnma-ncREplicRtionME/appointmeb.sha  bu}ld --n -cache -t 
-          docker push $DOCKER_USERNAME/appointme .t-app:${{ gi       push uild and push notappftnnmeetrapp         cd microsrvice
-          docker build --no-cache:{ h ate deployment files
-        run: |
-          # Update docker-compose.yml with nwDi KER
-U   NsMd/notification-service:${{ github.sha }}-i 's|build:|image: ${{ serDtCKERSUERNNaMp/notification-service:${{ github.sha }}intment-app:${{ github.sha }}|' docker-compose.yml
-          sed -i 's|build:|image: ${{ secrets.DOCKER_USERNAME }}/notification-service:${{ github.sha }}|' docker-compose.yml
+          # Build and push main application
+          docker build --no-cache -t $DOCKER_USERNAME/appointment-app:${{ github.sha }} .
+          docker push $DOCKER_USERNAME/appointment-app:${{ github.sha }}
+          
+          # Build and push notification service
+          cd microservice
+          docker build --no-cache -t $DOCKER_USERNAME/notification-service:${{ github.sha }} .
+          docker push $DOCKER_USERNAME/notification-service:${{ github.sha }}
+          cd ..
+          
+          # Update docker-compose.yml with new image tags
+          sed -i "s|build: .|image: $DOCKER_USERNAME/appointment-app:${{ github.sha }}|" docker-compose.yml
+          sed -i "s|build: ./microservice|image: $DOCKER_USERNAME/notification-service:${{ github.sha }}|" docker-compose.yml
 
       - name: Deploy application
         env:

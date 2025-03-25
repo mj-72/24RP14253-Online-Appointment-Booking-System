@@ -1,0 +1,103 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = credentials('docker-registry-credentials')
+        KUBE_CONFIG = credentials('kubernetes-config')
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+                dir('microservice') {
+                    sh 'npm ci'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                sh 'npm audit'
+            }
+        }
+
+        stage('Build & Push Docker Images') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-registry-credentials') {
+                        // Build and push main application
+                        def mainApp = docker.build("${DOCKER_REGISTRY_USR}/appointment-app:${IMAGE_TAG}")
+                        mainApp.push()
+
+                        // Build and push notification service
+                        dir('microservice') {
+                            def notificationService = docker.build("${DOCKER_REGISTRY_USR}/notification-service:${IMAGE_TAG}")
+                            notificationService.push()
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Configure kubectl
+                    sh "kubectl config use-context ${KUBE_CONFIG}"
+
+                    // Update deployment image tags
+                    sh """
+                        sed -i 's|\${DOCKER_USERNAME}|'"${DOCKER_REGISTRY_USR}"'|g' k8s/*.yaml
+                        sed -i 's|\${IMAGE_TAG}|'"${IMAGE_TAG}"'|g' k8s/*.yaml
+                    """
+
+                    // Apply Kubernetes configurations
+                    sh '''
+                        kubectl apply -f k8s/backend-deployment.yaml
+                        kubectl apply -f k8s/microservice-deployment.yaml
+                        kubectl apply -f k8s/nginx-ingress.yaml
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    // Wait for deployments to be ready
+                    sh '''
+                        kubectl rollout status deployment/appointment-backend
+                        kubectl rollout status deployment/notification-service
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
+}
