@@ -7,7 +7,7 @@ RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
 
-# Set npm config and install dependencies
+# Copy package files and install dependencies
 RUN npm config set unsafe-perm true && \
     npm install && \
     npm ci --only=production
