@@ -11,6 +11,7 @@ COPY package*.json ./
 
 # Set npm config and install dependencies
 RUN npm config set unsafe-perm true && \
+    npm install && \
     npm ci --only=production
 
 COPY . .
