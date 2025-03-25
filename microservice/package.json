@@ -1,0 +1,14 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "Notification microservice for appointment booking system",
+  "main": "notificationService.js",
+  "scripts": {
+    "start": "node notificationService.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  }
+}
